@@ -8,14 +8,17 @@ public struct ACLJob : IAnimationJob
 {
     TransformStreamHandle mRootHandle;
     NativeArray<TransformStreamHandle> mHandles;
-    AnimationClip mClip;
-    public ACLJob(TransformStreamHandle rootHandle, NativeArray<TransformStreamHandle> handles, AnimationClip clip)
+    int mClipIndex;
+    public ACLJob(TransformStreamHandle rootHandle, NativeArray<TransformStreamHandle> handles)
     {
         mRootHandle = rootHandle;
         mHandles = handles;
-        mClip = clip;
+        mClipIndex = 0;
     }
-
+    public void SetClipIndex(int index)
+    {
+        mClipIndex = index;
+    }
     public void ProcessRootMotion(AnimationStream stream)
     {
         // Get root position and rotation.
@@ -29,7 +32,8 @@ public struct ACLJob : IAnimationJob
     public void ProcessAnimation(AnimationStream stream)
     {
         var numHandles = mHandles.Length;
-        var streamA = stream.GetInputStream(0);
+        var streamA = stream.GetInputStream(mClipIndex);
+
         for (var i = 0; i < numHandles; ++i)
         {
             var handle = mHandles[i];

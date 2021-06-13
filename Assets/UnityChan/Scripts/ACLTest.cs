@@ -27,14 +27,17 @@ namespace UnityChan
 			handles = new NativeArray<TransformStreamHandle>(numTransforms, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 			for (var i = 0; i < numTransforms; ++i)
 			{
-				Debug.Log(transforms[i + 1].name);
 				handles[i] = animator.BindStreamTransform(transforms[i + 1]);
 			}
 
-			var aclJob = new ACLJob(rootHandle, handles, animations[0]);
+			var aclJob = new ACLJob(rootHandle, handles);
 			aclPlayable = AnimationScriptPlayable.Create(playableGraph, aclJob);
 			aclPlayable.SetProcessInputs(false);
-			aclPlayable.AddInput(AnimationClipPlayable.Create(playableGraph, animations[0]), 0, 1.0f);
+			for (int i = 0; i < animations.Length; i++)
+			{
+				var clipPlayable = AnimationClipPlayable.Create(playableGraph, animations[i]);
+				aclPlayable.AddInput(clipPlayable, 0, 1.0f);
+			}
 
 			playableOutput = AnimationPlayableOutput.Create(playableGraph, "Animation", animator);
 			playableOutput.SetSourcePlayable(aclPlayable);
@@ -53,12 +56,14 @@ namespace UnityChan
 			GUILayout.Box ("Animations", GUILayout.Width (170), GUILayout.Height (25 * (animations.Length + 2)));
 			Rect screenRect = new Rect (10, 25, 150, 25 * (animations.Length + 1));
 			GUILayout.BeginArea (screenRect);
-			foreach (var animation in animations) 
+			for (int i = 0; i < animations.Length; i++)
 			{
-				if (GUILayout.RepeatButton (animation.name))
+				if (GUILayout.RepeatButton (animations[i].name))
 				{
-					//aclPlayable.AddInput(AnimationClipPlayable.Create(playableGraph, animation), 0, 1.0f);
-					//var aclJob = aclPlayable.GetJobData<ACLJob>();
+					var aclJob = aclPlayable.GetJobData<ACLJob>();
+					aclJob.SetClipIndex(i);
+					aclPlayable.SetJobData(aclJob);
+					aclPlayable.GetInput(i).SetTime(0);
 				}
 			}
 			GUILayout.EndArea ();
