@@ -11,6 +11,7 @@ public unsafe class ACLWrapper : IDisposable
     IntPtr dataPtr;
     IntPtr context = IntPtr.Zero;
     float[] resultBuffer;
+    byte[] flagBuffer;
     
     public float Duration
     {
@@ -45,6 +46,7 @@ public unsafe class ACLWrapper : IDisposable
         }
 
         resultBuffer = new float[12 * NumTracks];
+        flagBuffer = new byte[NumTracks];
     }
 
     ~ACLWrapper()
@@ -61,9 +63,28 @@ public unsafe class ACLWrapper : IDisposable
     {
         fixed (float* p = resultBuffer)
         {
-            ACLBinding.DecompressTracks(context, (IntPtr)p);
+            fixed (byte* f = flagBuffer)
+            {
+                ACLBinding.DecompressTracks(context, (IntPtr)p, (IntPtr)f);
+            }
         }
     }
+    
+    public bool HasTrackRotation(int track_index)
+    {
+        return (flagBuffer[track_index] & 1) > 0;
+    }
+    
+    public bool HasTrackPosition(int track_index)
+    {
+        return (flagBuffer[track_index] & 2) > 0;
+    }
+
+    public bool HasTrackScale(int track_index)
+    {
+        return (flagBuffer[track_index] & 4) > 0;
+    }
+
 
     public Quaternion GetTrackRotation(int track_index)
     {

@@ -37,5 +37,5 @@ public static class ACLBinding
     public static extern void SeekInContext (System.IntPtr context, float sample_time, SampleRoundingPolicy rounding_policy);
     
     [DllImport ("acl_unity")]
-    public static extern void DecompressTracks (System.IntPtr context, System.IntPtr result);
+    public static extern void DecompressTracks (System.IntPtr context, System.IntPtr result, System.IntPtr flag);
 }

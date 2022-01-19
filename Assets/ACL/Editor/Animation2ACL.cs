@@ -26,7 +26,7 @@ public class Animation2ACL
             return;
 
         var final_path = Path.ChangeExtension(asset_path, null) + "@" + clip.name + ".bytes";
-        File.Copy(bin_path, final_path);
+        File.Copy(bin_path, final_path, true);
         Debug.LogFormat("ACL Bin {0}", final_path);
     }
     
@@ -98,6 +98,27 @@ public class Animation2ACL
             bool has_pos = pos_x != null && pos_y != null && pos_z != null;
             bool has_scale = scale_x != null && scale_y != null && scale_z != null;
 
+            // They should appear or disappear together
+            if (!has_rot)
+            {
+                Debug.Assert(rot_x == null);
+                Debug.Assert(rot_y == null);
+                Debug.Assert(rot_z == null);
+                Debug.Assert(rot_w == null);
+            }
+            if (!has_pos)
+            {
+                Debug.Assert(pos_x == null);
+                Debug.Assert(pos_y == null);
+                Debug.Assert(pos_z == null);
+            }
+            if (!has_scale)
+            {
+                Debug.Assert(scale_x == null);
+                Debug.Assert(scale_y == null);
+                Debug.Assert(scale_z == null);
+            }
+            
             if (has_rot)
                 track_rotation = new Quaternion[samples];
             else
@@ -122,12 +143,13 @@ public class Animation2ACL
                     track_scale[i] = new Vector3(scale_x.Evaluate(time), scale_y.Evaluate(time), scale_z.Evaluate(time));
             }
 
+            // only leave empty when they are default values
             bool valid = false;
             if (has_rot)
             {
                 for (int i = 0; i < samples; i++)
                 {
-                    if (track_rotation[i] != DefaultRotation)
+                    if (track_rotation[i] != bind_rotation)
                     {
                         valid = true;
                         break;
@@ -142,7 +164,7 @@ public class Animation2ACL
             {
                 for (int i = 0; i < samples; i++)
                 {
-                    if (track_translation[i] != DefaultTranslation)
+                    if (track_translation[i] != bind_tranlation)
                     {
                         valid = true;
                         break;
@@ -157,7 +179,7 @@ public class Animation2ACL
             {
                 for (int i = 0; i < samples; i++)
                 {
-                    if (track_scale[i] != DefaultScale)
+                    if (track_scale[i] != bind_scale)
                     {
                         valid = true;
                         break;
@@ -173,7 +195,7 @@ public class Animation2ACL
             writer.WriteLine("\t{");
             writer.WriteLine("\t\tname = \"" + name + "\"");
             writer.WriteLine("\t\tparent = \"" + parent + "\"");
-            writer.WriteLine("\t\tvertex_distance = 3.0");
+            writer.WriteLine("\t\tvertex_distance = 3.0");	// TODO
             if (bind_rotation != DefaultRotation)
             {
                 writer.WriteLine("\t\tbind_rotation = [ {0}, {1}, {2}, {3} ]", bind_rotation.x, bind_rotation.y, bind_rotation.z, bind_rotation.w);
