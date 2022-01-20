@@ -50,11 +50,10 @@ public struct ACLJob : IAnimationJob
     }
     public void ProcessAnimation(AnimationStream stream)
     {
-        time += stream.deltaTime;
+        // Loop
+        time = Mathf.Repeat(time + stream.deltaTime, mACLAnimation.Duration);
         mACLAnimation.Seek(time);
-        //Debug.Log(time);
-        mACLAnimation.Decompress();	// TODO: crash?
-        //Debug.Log(mACLAnimation.GetTrackRotation(1).eulerAngles.ToString("F4"));
+        mACLAnimation.Decompress();
 
         var numHandles = mHandles.Length;
 

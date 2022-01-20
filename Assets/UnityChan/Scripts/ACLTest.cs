@@ -15,6 +15,7 @@ namespace UnityChan
 		AnimationScriptPlayable aclPlayable;
 		NativeArray<TransformStreamHandle> handles;
 		string[] handleNames;
+		ACLWrapper wrapper;
 
 		void Start ()
 		{
@@ -36,7 +37,8 @@ namespace UnityChan
 
 			if (animations.Length > 0)
 			{
-				var aclJob = new ACLJob(rootHandle, handles, handleNames, new ACLWrapper(animations[0].bytes));
+				wrapper = new ACLWrapper(animations[0].bytes);
+				var aclJob = new ACLJob(rootHandle, handles, handleNames, wrapper);
 				aclPlayable = AnimationScriptPlayable.Create(playableGraph, aclJob);
 				aclPlayable.SetProcessInputs(false);
 			}
@@ -62,7 +64,8 @@ namespace UnityChan
 			{
 				if (GUILayout.RepeatButton (animations[i].name))
 				{
-					var aclJob = new ACLJob(rootHandle, handles, handleNames, new ACLWrapper(animations[i].bytes));
+					wrapper = new ACLWrapper(animations[i].bytes);
+					var aclJob = new ACLJob(rootHandle, handles, handleNames, wrapper);
 					aclPlayable.SetJobData(aclJob);
 					aclPlayable.SetTime(0);
 				}

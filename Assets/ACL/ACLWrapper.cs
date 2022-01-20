@@ -56,11 +56,13 @@ public unsafe class ACLWrapper : IDisposable
 
     public void Seek(float time, ACLBinding.SampleRoundingPolicy policy = ACLBinding.SampleRoundingPolicy.None)
     {
+        Debug.Assert(context != IntPtr.Zero);
         ACLBinding.SeekInContext(context, time, policy);
     }
     
     public void Decompress()
     {
+        Debug.Assert(context != IntPtr.Zero);
         fixed (float* p = resultBuffer)
         {
             fixed (byte* f = flagBuffer)
