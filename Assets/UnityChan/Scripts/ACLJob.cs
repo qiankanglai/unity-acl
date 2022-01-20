@@ -37,7 +37,6 @@ public struct ACLJob : IAnimationJob
             }
         }
         mACLAnimation.Decompress();
-        first = true;   // test
     }
     public void ProcessRootMotion(AnimationStream stream)
     {
