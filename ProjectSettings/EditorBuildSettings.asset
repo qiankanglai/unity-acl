@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/ACLPlayableTest.unity
+    guid: d3fe75422ab84c2469eb54a636623cc4
+  - enabled: 1
+    path: Assets/Scenes/AnimationPlayableTest.unity
+    guid: 78719da4a66e96d44baee1604b85af55
   m_configObjects: {}
