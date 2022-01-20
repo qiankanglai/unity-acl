@@ -118,75 +118,25 @@ public class Animation2ACL
                 Debug.Assert(scale_y == null);
                 Debug.Assert(scale_z == null);
             }
-            
-            if (has_rot)
-                track_rotation = new Quaternion[samples];
-            else
-                track_rotation = new Quaternion[0];
-            if (has_pos)
-                track_translation = new Vector3[samples];
-            else
-                track_translation = new Vector3[0];
-            if (has_scale)
-                track_scale = new Vector3[samples];
-            else
-                track_scale = new Vector3[0];
+            track_rotation = new Quaternion[samples];
+            track_translation = new Vector3[samples];
+            track_scale = new Vector3[samples];
 
             for (int i = 0; i < samples; i++)
             {
                 float time = (float)i / clip.frameRate;
                 if (has_rot)
                     track_rotation[i] = new Quaternion(rot_x.Evaluate(time), rot_y.Evaluate(time), rot_z.Evaluate(time), rot_w.Evaluate(time));
+                else
+                    track_rotation[i] = bind_rotation;
                 if (has_pos)
                     track_translation[i] = new Vector3(pos_x.Evaluate(time), pos_y.Evaluate(time), pos_z.Evaluate(time));
+                else
+                    track_translation[i] = bind_tranlation;
                 if (has_scale)
                     track_scale[i] = new Vector3(scale_x.Evaluate(time), scale_y.Evaluate(time), scale_z.Evaluate(time));
-            }
-
-            // only leave empty when they are default values
-            bool valid = false;
-            if (has_rot)
-            {
-                for (int i = 0; i < samples; i++)
-                {
-                    if (track_rotation[i] != bind_rotation)
-                    {
-                        valid = true;
-                        break;
-                    }
-                }
-                if (!valid)
-                    track_rotation = new Quaternion[0];
-            }
-
-            valid = false;
-            if (has_pos)
-            {
-                for (int i = 0; i < samples; i++)
-                {
-                    if (track_translation[i] != bind_tranlation)
-                    {
-                        valid = true;
-                        break;
-                    }
-                }
-                if (!valid)
-                    track_translation = new Vector3[0];
-            }
-            
-            valid = false;
-            if (has_scale)
-            {
-                for (int i = 0; i < samples; i++)
-                {
-                    if (track_scale[i] != bind_scale)
-                    {
-                        valid = true;
-                        break;
-                    }
-                }
-                if (!valid)
-                    track_scale = new Vector3[0];
+                else
+                    track_scale[i] = bind_scale;
             }
         }
 
@@ -196,18 +146,9 @@ public class Animation2ACL
             writer.WriteLine("\t\tname = \"" + name + "\"");
             writer.WriteLine("\t\tparent = \"" + parent + "\"");
             writer.WriteLine("\t\tvertex_distance = 3.0");	// TODO
-            if (bind_rotation != DefaultRotation)
-            {
-                writer.WriteLine("\t\tbind_rotation = [ {0}, {1}, {2}, {3} ]", bind_rotation.x, bind_rotation.y, bind_rotation.z, bind_rotation.w);
-            }
-            if (bind_tranlation != DefaultTranslation)
-            {
-                writer.WriteLine("\t\tbind_translation = [ {0}, {1}, {2} ]", bind_tranlation.x, bind_tranlation.y, bind_tranlation.z);
-            }
-            if (bind_scale != DefaultScale)
-            {
-                writer.WriteLine("\t\tbind_scale = [ {0}, {1}, {2} ]", bind_scale.x, bind_scale.y, bind_scale.z);
-            }
+            writer.WriteLine("\t\tbind_rotation = [ {0}, {1}, {2}, {3} ]", bind_rotation.x, bind_rotation.y, bind_rotation.z, bind_rotation.w);
+            writer.WriteLine("\t\tbind_translation = [ {0}, {1}, {2} ]", bind_tranlation.x, bind_tranlation.y, bind_tranlation.z);
+            writer.WriteLine("\t\tbind_scale = [ {0}, {1}, {2} ]", bind_scale.x, bind_scale.y, bind_scale.z);
             writer.WriteLine("\t}");
         }
         
@@ -217,36 +158,31 @@ public class Animation2ACL
 
             writer.WriteLine("\t{");
             writer.WriteLine("\t\tname = \"" + name + "\"");
-            if (track_rotation.Length > 0)
+
+            writer.WriteLine("\t\trotations =");
+            writer.WriteLine("\t\t[");
+            foreach (var rot in track_rotation)
             {
-                writer.WriteLine("\t\trotations =");
-                writer.WriteLine("\t\t[");
-                foreach (var rot in track_rotation)
-                {
-                    writer.WriteLine("\t\t\t[ {0}, {1}, {2}, {3} ]", rot.x, rot.y, rot.z, rot.w);
-                }
-                writer.WriteLine("\t\t]");
+                writer.WriteLine("\t\t\t[ {0}, {1}, {2}, {3} ]", rot.x, rot.y, rot.z, rot.w);
             }
-            if (track_translation.Length > 0)
+            writer.WriteLine("\t\t]");
+
+            writer.WriteLine("\t\ttranslations =");
+            writer.WriteLine("\t\t[");
+            foreach (var pos in track_translation)
             {
-                writer.WriteLine("\t\ttranslations =");
-                writer.WriteLine("\t\t[");
-                foreach (var pos in track_translation)
-                {
-                    writer.WriteLine("\t\t\t[ {0}, {1}, {2} ]", pos.x, pos.y, pos.z);
-                }
-                writer.WriteLine("\t\t]");
+                writer.WriteLine("\t\t\t[ {0}, {1}, {2} ]", pos.x, pos.y, pos.z);
             }
-            if (track_scale.Length > 0)
+            writer.WriteLine("\t\t]");
+
+            writer.WriteLine("\t\tscales =");
+            writer.WriteLine("\t\t[");
+            foreach (var scale in track_scale)
             {
-                writer.WriteLine("\t\tscales =");
-                writer.WriteLine("\t\t[");
-                foreach (var scale in track_scale)
-                {
-                    writer.WriteLine("\t\t\t[ {0}, {1}, {2} ]", scale.x, scale.y, scale.z);
-                }
-                writer.WriteLine("\t\t]");
+                writer.WriteLine("\t\t\t[ {0}, {1}, {2} ]", scale.x, scale.y, scale.z);
             }
+            writer.WriteLine("\t\t]");
+
             writer.WriteLine("\t}");
         }
     }
