@@ -3,75 +3,79 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Animations;
+using Unity.Collections.LowLevel.Unsafe;
 
-public struct ACLJob : IAnimationJob
+public unsafe struct ACLJob : IAnimationJob
 {
     TransformStreamHandle mRootHandle;
+    [ReadOnly]
     NativeArray<TransformStreamHandle> mHandles;
-    ACLWrapper mACLAnimation;
-    int[] mHandleIndex;
-    float time;
+    [ReadOnly]
+    NativeArray<int> mHandleIndex;
 
-    public ACLJob(TransformStreamHandle rootHandle, NativeArray<TransformStreamHandle> handles, string[] handleNames, ACLWrapper wrapper)
+    System.IntPtr mACLContext;
+    float mDuration;
+    int mNumTracks;
+    NativeArray<float> mResultBuffer;
+    NativeArray<byte> mFlagBuffer;
+
+    float mTime;
+
+    public ACLJob(TransformStreamHandle rootHandle, NativeArray<TransformStreamHandle> handles, NativeArray<int> handleIndex, System.IntPtr aclContext, float duration, int numTracks, NativeArray<float> resultBuffer, NativeArray<byte> flagBuffer)
     {
         mRootHandle = rootHandle;
         mHandles = handles;
-        mACLAnimation = wrapper;
-        time = 0;
+        mHandleIndex = handleIndex;
 
-        Debug.Assert(handles.Length == handleNames.Length);
-        mHandleIndex = new int[handleNames.Length];
-        for (int i = 0; i < handleNames.Length; i++)
-        {
-            mHandleIndex[i] = -1;
-            for (int j = 0; j < mACLAnimation.TrackNames.Length; j++)
-            {
-                if (handleNames[i] == mACLAnimation.TrackNames[j])
-                {
-                    mHandleIndex[i] = j;
-                }
-            }
-            if (mHandleIndex[i] < 0)
-            {
-                Debug.LogWarningFormat("Missing {0} in acl track", handleNames[i]);
-            }
-        }
-        mACLAnimation.Decompress();
+        mACLContext = aclContext;
+        mDuration = duration;
+        mNumTracks = numTracks;
+        mResultBuffer = resultBuffer;
+        mFlagBuffer = flagBuffer;
+
+        mTime = 0;
     }
+
+    public void SetTime(float time)
+    {
+        mTime = Mathf.Repeat(time, mDuration);
+    }
+
+    private void Process(int track_index, AnimationStream stream, TransformStreamHandle handle)
+    {
+        if (track_index < 0)
+            return;
+        
+        if ((mFlagBuffer[track_index] & 1) > 0)
+            handle.SetLocalRotation(stream, new Quaternion(mResultBuffer[12 * track_index + 0], mResultBuffer[12 * track_index + 1], mResultBuffer[12 * track_index + 2], mResultBuffer[12 * track_index + 3]));
+            
+        if ((mFlagBuffer[track_index] & 2) > 0)
+            handle.SetLocalPosition(stream, new Vector3(mResultBuffer[12 * track_index + 4], mResultBuffer[12 * track_index + 5], mResultBuffer[12 * track_index + 6]));
+            
+        if ((mFlagBuffer[track_index] & 4) > 0)
+            handle.SetLocalScale(stream, new Vector3(mResultBuffer[12 * track_index + 8], mResultBuffer[12 * track_index + 9], mResultBuffer[12 * track_index + 10]));
+    }
+
     public void ProcessRootMotion(AnimationStream stream)
     {
-        // Get root position and rotation.
-        var rootPosition = mRootHandle.GetPosition(stream);
-        var rootRotation = mRootHandle.GetRotation(stream);
+        // Loop
+        mTime = Mathf.Repeat(mTime + stream.deltaTime, mDuration);
+        // Only Seek & Compress here, no need in ProcessAnimation
+        ACLBinding.SeekInContext(mACLContext, mTime, ACLBinding.SampleRoundingPolicy.None);
+        void* p = NativeArrayUnsafeUtility.GetUnsafePtr(mResultBuffer);
+        void* f = NativeArrayUnsafeUtility.GetUnsafePtr(mFlagBuffer);
+        ACLBinding.DecompressTracks(mACLContext, (System.IntPtr)p, (System.IntPtr)f);
 
-        // The root always follow the given position and rotation.
-        mRootHandle.SetPosition(stream, rootPosition);
-        mRootHandle.SetRotation(stream, rootRotation);
+        Process(0, stream, mRootHandle);
     }
+
     public void ProcessAnimation(AnimationStream stream)
     {
-        // Loop
-        time = Mathf.Repeat(time + stream.deltaTime, mACLAnimation.Duration);
-        mACLAnimation.Seek(time);
-        mACLAnimation.Decompress();
-
         var numHandles = mHandles.Length;
 
         for (var i = 0; i < numHandles; ++i)
         {
-            if (mHandleIndex[i] < 0)
-                continue;
-            
-            var handle = mHandles[i];
-
-            if (mACLAnimation.HasTrackPosition(i))
-                handle.SetLocalPosition(stream, mACLAnimation.GetTrackPosition(mHandleIndex[i]));
-            
-            if (mACLAnimation.HasTrackRotation(i))
-                handle.SetLocalRotation(stream, mACLAnimation.GetTrackRotation(mHandleIndex[i]));
-            
-            if (mACLAnimation.HasTrackScale(i))
-                handle.SetLocalScale(stream, mACLAnimation.GetTrackScale(mHandleIndex[i]));
+            Process(mHandleIndex[i], stream, mHandles[i]);
         }
     }
 }

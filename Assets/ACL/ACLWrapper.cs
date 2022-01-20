@@ -90,17 +90,17 @@ public unsafe class ACLWrapper : IDisposable
 
     public Quaternion GetTrackRotation(int track_index)
     {
-        return new Quaternion(resultBuffer[12*track_index+0],resultBuffer[12*track_index+1],resultBuffer[12*track_index+2],resultBuffer[12*track_index+3]);
+        return new Quaternion(resultBuffer[12 * track_index + 0], resultBuffer[12 * track_index + 1], resultBuffer[12 * track_index + 2], resultBuffer[12 * track_index + 3]);
     }
     
     public Vector3 GetTrackPosition(int track_index)
     {
-        return new Vector3(resultBuffer[12*track_index+4],resultBuffer[12*track_index+5],resultBuffer[12*track_index+6]);
+        return new Vector3(resultBuffer[12 * track_index + 4], resultBuffer[12 * track_index + 5], resultBuffer[12 * track_index + 6]);
     }
 
     public Vector3 GetTrackScale(int track_index)
     {
-        return new Vector3(resultBuffer[12*track_index+8],resultBuffer[12*track_index+9],resultBuffer[12*track_index+10]);
+        return new Vector3(resultBuffer[12 * track_index + 8], resultBuffer[12 * track_index + 9], resultBuffer[12 * track_index + 10]);
     }
 
     public void Dispose()
