@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.Playables;
 using UnityEngine.Animations;
 using Unity.Collections;
@@ -8,12 +8,13 @@ namespace UnityChan
 {
 	public class ACLTest : MonoBehaviour
 	{
-		public AnimationClip[] animations;
+		public TextAsset[] animations;
 		PlayableGraph playableGraph;
 		AnimationPlayableOutput playableOutput;
 		TransformStreamHandle rootHandle;
 		AnimationScriptPlayable aclPlayable;
 		NativeArray<TransformStreamHandle> handles;
+		string[] handleNames;
 
 		void Start ()
 		{
@@ -25,18 +26,19 @@ namespace UnityChan
 			var transforms = transform.GetComponentsInChildren<Transform>();
 			var numTransforms = transforms.Length - 1;
 			handles = new NativeArray<TransformStreamHandle>(numTransforms, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+			handleNames = new string[numTransforms];
+
 			for (var i = 0; i < numTransforms; ++i)
 			{
 				handles[i] = animator.BindStreamTransform(transforms[i + 1]);
+				handleNames[i] = transforms[i + 1].name;
 			}
 
-			var aclJob = new ACLJob(rootHandle, handles);
-			aclPlayable = AnimationScriptPlayable.Create(playableGraph, aclJob);
-			aclPlayable.SetProcessInputs(false);
-			for (int i = 0; i < animations.Length; i++)
+			if (animations.Length > 0)
 			{
-				var clipPlayable = AnimationClipPlayable.Create(playableGraph, animations[i]);
-				aclPlayable.AddInput(clipPlayable, 0, 1.0f);
+				var aclJob = new ACLJob(rootHandle, handles, handleNames, new ACLWrapper(animations[0].bytes));
+				aclPlayable = AnimationScriptPlayable.Create(playableGraph, aclJob);
+				aclPlayable.SetProcessInputs(false);
 			}
 
 			playableOutput = AnimationPlayableOutput.Create(playableGraph, "Animation", animator);
@@ -60,10 +62,9 @@ namespace UnityChan
 			{
 				if (GUILayout.RepeatButton (animations[i].name))
 				{
-					var aclJob = aclPlayable.GetJobData<ACLJob>();
-					aclJob.SetClipIndex(i);
+					var aclJob = new ACLJob(rootHandle, handles, handleNames, new ACLWrapper(animations[i].bytes));
 					aclPlayable.SetJobData(aclJob);
-					aclPlayable.GetInput(i).SetTime(0);
+					aclPlayable.SetTime(0);
 				}
 			}
 			GUILayout.EndArea ();

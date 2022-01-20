@@ -441,11 +441,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animations:
-  - {fileID: 7400000, guid: ac75d16809dc0054d8e3449e7ba665f2, type: 3}
-  - {fileID: 7400000, guid: d6fd0c7048894427c8663615237d6a77, type: 3}
-  - {fileID: 7400000, guid: 87486f7b16eedbf4eb26567d70189058, type: 3}
-  - {fileID: 7400000, guid: c49b7faf71cf048418fe526d8e233c8e, type: 3}
-  - {fileID: 7400000, guid: c7df2ec8d896a4a15abc7636d440631b, type: 3}
+  - {fileID: 4900000, guid: 2ad92d977e9153e4d9d6d3fd5763a997, type: 3}
 --- !u!1001 &1896757848
 PrefabInstance:
   m_ObjectHideFlags: 0
