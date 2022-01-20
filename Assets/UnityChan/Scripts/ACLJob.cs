@@ -18,6 +18,8 @@ public unsafe struct ACLJob : IAnimationJob
     int mNumTracks;
     NativeArray<float> mResultBuffer;
     NativeArray<byte> mFlagBuffer;
+    System.IntPtr mResultPtr;
+    System.IntPtr mFlagPtr;
 
     float mTime;
 
@@ -32,6 +34,9 @@ public unsafe struct ACLJob : IAnimationJob
         mNumTracks = numTracks;
         mResultBuffer = resultBuffer;
         mFlagBuffer = flagBuffer;
+        
+        mResultPtr = (System.IntPtr)NativeArrayUnsafeUtility.GetUnsafePtr(mResultBuffer);
+        mFlagPtr = (System.IntPtr)NativeArrayUnsafeUtility.GetUnsafePtr(mFlagBuffer);
 
         mTime = 0;
     }
@@ -62,9 +67,7 @@ public unsafe struct ACLJob : IAnimationJob
         mTime = Mathf.Repeat(mTime + stream.deltaTime, mDuration);
         // Only Seek & Compress here, no need in ProcessAnimation
         ACLBinding.SeekInContext(mACLContext, mTime, ACLBinding.SampleRoundingPolicy.None);
-        void* p = NativeArrayUnsafeUtility.GetUnsafePtr(mResultBuffer);
-        void* f = NativeArrayUnsafeUtility.GetUnsafePtr(mFlagBuffer);
-        ACLBinding.DecompressTracks(mACLContext, (System.IntPtr)p, (System.IntPtr)f);
+        ACLBinding.DecompressTracks(mACLContext, mResultPtr, mFlagPtr);
 
         Process(0, stream, mRootHandle);
     }
