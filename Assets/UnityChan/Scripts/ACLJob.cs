@@ -7,6 +7,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 public unsafe struct ACLJob : IAnimationJob
 {
+    [ReadOnly]
     TransformStreamHandle mRootHandle;
     [ReadOnly]
     NativeArray<TransformStreamHandle> mHandles;
@@ -52,7 +53,7 @@ public unsafe struct ACLJob : IAnimationJob
         mTime = Mathf.Repeat(time, mDuration);
     }
 
-    private void Process(int track_index, AnimationStream stream, TransformStreamHandle handle)
+    private void SetHandleTransform(int track_index, AnimationStream stream, TransformStreamHandle handle)
     {
         if (track_index < 0)
             return;
@@ -74,8 +75,9 @@ public unsafe struct ACLJob : IAnimationJob
         // Only Seek & Compress here, no need in ProcessAnimation
         ACLBinding.SeekInContext(mACLContext, mTime, ACLBinding.SampleRoundingPolicy.None);
         ACLBinding.DecompressTracks(mACLContext, (System.IntPtr)mResultPtr, (System.IntPtr)mFlagPtr);
+        //ACLBinding.DecompressTracksEx(mACLContext, (System.IntPtr)mResultPtr, (System.IntPtr)mFlagPtr, 0, 0, 0);
 
-        Process(0, stream, mRootHandle);
+        SetHandleTransform(0, stream, mRootHandle);
     }
 
     public void ProcessAnimation(AnimationStream stream)
@@ -84,7 +86,7 @@ public unsafe struct ACLJob : IAnimationJob
 
         for (var i = 0; i < numHandles; ++i)
         {
-            Process(mHandleIndexPtr[i], stream, mHandlesPtr[i]);
+            SetHandleTransform(mHandleIndexPtr[i], stream, mHandlesPtr[i]);
         }
     }
 }

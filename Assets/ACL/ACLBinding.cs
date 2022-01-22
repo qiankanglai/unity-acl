@@ -38,4 +38,7 @@ public static class ACLBinding
     
     [DllImport ("acl_unity")]
     public static extern void DecompressTracks (System.IntPtr context, System.IntPtr result, System.IntPtr flag);
+    
+    [DllImport ("acl_unity")]
+    public static extern void DecompressTracksEx (System.IntPtr context, System.IntPtr result, System.IntPtr flag, float pos_threshold, float rot_threshold, float scale_threshold);
 }

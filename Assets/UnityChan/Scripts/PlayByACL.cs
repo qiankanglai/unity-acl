@@ -71,8 +71,8 @@ namespace UnityChan
 			if (flagBuffer.IsCreated)
 				flagBuffer.Dispose();
 
-			resultBuffer = new NativeArray<float>(12 * numTracks, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-			flagBuffer = new NativeArray<byte>(numTracks, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+			resultBuffer = new NativeArray<float>(12 * numTracks, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+			flagBuffer = new NativeArray<byte>(numTracks, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
 			Debug.Assert(handles.Length == handleNames.Length);
 			for (int i = 0; i < handleNames.Length; i++)
@@ -85,12 +85,6 @@ namespace UnityChan
 						handleIndex[i] = j;
 					}
 				}
-				/*
-				if (handleIndex[i] < 0)
-				{
-					Debug.LogWarningFormat("Missing {0} in acl track", handleNames[i]);
-				}
-				*/
 			}
         }
 

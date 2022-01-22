@@ -72,6 +72,18 @@ public unsafe class ACLWrapper : IDisposable
         }
     }
     
+    public void DecompressEx(float pos_threshold, float rot_threshold, float scale_threshold)
+    {
+        Debug.Assert(context != IntPtr.Zero);
+        fixed (float* p = resultBuffer)
+        {
+            fixed (byte* f = flagBuffer)
+            {
+                ACLBinding.DecompressTracksEx(context, (IntPtr)p, (IntPtr)f, pos_threshold, rot_threshold, scale_threshold);
+            }
+        }
+    }
+    
     public bool HasTrackRotation(int track_index)
     {
         return (flagBuffer[track_index] & 1) > 0;

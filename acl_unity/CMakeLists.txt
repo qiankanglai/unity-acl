@@ -3,6 +3,8 @@ project(acl_unity CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/acl/cmake")
 
+set(USE_SIMD_INSTRUCTIONS TRUE)
+
 include(CMakeUtils)
 include(CMakeCompiler)
 include(CMakePlatforms)
